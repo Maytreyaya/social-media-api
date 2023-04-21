@@ -20,6 +20,8 @@ from django.urls import path, include
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/user/", include("user.urls", namespace="user")),
-    path("api/accounts", include("social_media.urls", namespace="profile"))
+    path("api/", include("user.urls", namespace="user")),
+    path("api-auth/", include("rest_framework.urls", namespace="login")),
+    path("api/", include("social_media.urls", namespace="profile"))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
