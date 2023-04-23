@@ -1,8 +1,13 @@
 from django.urls import path, include
 from rest_framework import routers
 
-from social_media.views import ProfileViewSet, follow_user, unfollow_user, upload_post, PostViewSet, like_post, \
-    unlike_post
+from social_media.views import (ProfileViewSet,
+                                follow_user,
+                                unfollow_user,
+                                upload_post,
+                                PostViewSet,
+                                like_post,
+                                unlike_post)
 
 router = routers.DefaultRouter()
 router.register("accounts", ProfileViewSet, basename="accounts")

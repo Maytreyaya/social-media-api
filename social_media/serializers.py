@@ -1,4 +1,4 @@
-from django.conf import settings
+
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from .models import UserProfile, Post
@@ -20,7 +20,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = ("id", "user", "bio", "following_count", "image", "username",)
+        fields = ("id", "user",
+                  "bio",
+                  "following_count",
+                  "image", "username",)
         read_only_fields = ["id"]
 
 
@@ -41,7 +44,14 @@ class UserProfileDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = ("id", "user", "bio", "username", "image", "followers", "following", "liked_posts")
+        fields = ("id",
+                  "user",
+                  "bio",
+                  "username",
+                  "image",
+                  "followers",
+                  "following",
+                  "liked_posts")
         read_only_fields = ["id",]
 
 
@@ -57,7 +67,17 @@ class PostListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ["id", "title", "description", "created_by", "created_at", "likes"]
-        read_only_fields = ["id", "title", "description", "created_by", "created_at", "comments", "likes"]
+        fields = ["id", "title",
+                  "description",
+                  "created_by",
+                  "created_at",
+                  "likes"]
+        read_only_fields = ["id",
+                            "title",
+                            "description",
+                            "created_by",
+                            "created_at",
+                            "comments",
+                            "likes"]
 
 

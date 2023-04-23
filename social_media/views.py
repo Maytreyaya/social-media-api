@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -8,12 +10,14 @@ from rest_framework.response import Response
 
 from social_media.models import UserProfile, Post
 from social_media.permissions import IsOwnerOrReadOnly
-from social_media.serializers import UserProfileSerializer, UserProfileDetailSerializer, PostSerializer, \
-    PostListSerializer
+from social_media.serializers import (UserProfileSerializer,
+                                      UserProfileDetailSerializer,
+                                      PostSerializer,
+                                      PostListSerializer)
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
-    queryset = UserProfile.objects.all()
+    queryset = UserProfile.objects.prefetch_related("followers").select_related("user")
     serializer_class = UserProfileSerializer
     permission_classes = (IsOwnerOrReadOnly,)
 
@@ -72,10 +76,11 @@ class PostViewSet(viewsets.ModelViewSet):
     serializer_class = PostListSerializer
 
     def get_queryset(self):
+        queryset = Post.objects.select_related("created_by").prefetch_related("liked_by")
         search = self.request.query_params.get("q")
         following = self.request.user.following.all()
         following_ids = following.values_list("user_id", flat=True)
-        queryset = Post.objects.filter(Q(created_by=self.request.user) | Q(created_by__in=following_ids))
+        queryset = queryset.filter(Q(created_by=self.request.user) | Q(created_by__in=following_ids))
 
         if search:
             queryset = queryset.filter(Q(title__icontains=search) | Q(description__icontains=search))
@@ -89,6 +94,18 @@ class PostViewSet(viewsets.ModelViewSet):
         else:
             return Response(status=status.HTTP_403_FORBIDDEN)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "q",
+                type=OpenApiTypes.STR,
+                description="Filter by post title or description (ex. ?q=how)",
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -96,6 +113,7 @@ def like_post(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     post.liked_by.add(request.user)
     return Response({'message': 'Post liked.'})
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
